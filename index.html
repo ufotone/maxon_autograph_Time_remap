@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autograph Time Remap Sheet</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6f8;
+      --panel: #ffffff;
+      --ink: #1c2229;
+      --muted: #64717f;
+      --line: #d9e1e8;
+      --line-strong: #b8c5d0;
+      --accent: #0d7a6a;
+      --accent-dark: #095e52;
+      --danger: #b94b2b;
+      --soft: #e1f3ef;
+      --shadow: 0 16px 38px rgba(28, 42, 56, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Hiragino Sans", "Meiryo", sans-serif;
+      font-size: 14px;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--accent-dark);
+    }
+
+    button.warn {
+      color: var(--danger);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    input,
+    select {
+      min-height: 34px;
+      padding: 5px 8px;
+    }
+
+    textarea {
+      min-height: 210px;
+      resize: vertical;
+      padding: 10px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid var(--soft);
+      border-color: var(--accent);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(690px, 1fr) 410px;
+      min-height: 100vh;
+    }
+
+    .workspace {
+      padding: 20px 22px 26px;
+    }
+
+    .side {
+      border-left: 1px solid var(--line);
+      background: #fbfcfd;
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(112px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .field label,
+    .output label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .sheet-wrap,
+    .preview,
+    .output {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .sheet-wrap {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 0;
+      vertical-align: middle;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #edf2f5;
+      color: #31404f;
+      padding: 8px;
+      font-size: 12px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td input,
+    td select {
+      min-height: 38px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    td input:focus,
+    td select:focus {
+      outline-offset: -2px;
+    }
+
+    .row-actions {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 4px;
+    }
+
+    .row-actions button {
+      width: 30px;
+      min-height: 28px;
+      padding: 0;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .metric b {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 18px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .preview {
+      margin-top: 14px;
+      padding: 12px;
+    }
+
+    .preview-head,
+    .output-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .preview-head {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .output {
+      margin-bottom: 14px;
+      padding: 12px;
+      box-shadow: none;
+    }
+
+    .output-head label {
+      margin: 0;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 240px;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      transform: translateY(16px);
+      opacity: 0;
+      pointer-events: none;
+      border-radius: 8px;
+      background: #10221f;
+      color: #fff;
+      padding: 10px 12px;
+      transition: .18s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 1120px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .settings {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+      }
+    }
+
+    @media (max-width: 680px) {
+      .workspace,
+      .side {
+        padding: 14px;
+      }
+
+      .topbar {
+        display: block;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+        margin-top: 12px;
+      }
+
+      .settings,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="workspace">
+      <div class="topbar">
+        <div>
+          <h1>Autograph Time Remap Sheet</h1>
+          <div class="sub">表でコンポ時間とソース時間を組み、Autograph の Time Remap JSON としてコピーできます。</div>
+        </div>
+        <div class="toolbar">
+          <button id="addRow" class="primary" type="button">行を追加</button>
+          <button id="refreshKeys" class="primary" type="button">キー更新</button>
+          <button id="pasteRows" type="button">JSONを貼り付け</button>
+          <button id="sortRows" type="button">時間順</button>
+          <button id="clearRows" class="warn" type="button">初期化</button>
+        </div>
+      </div>
+
+      <div class="settings">
+        <div class="field">
+          <label for="fps">FPS</label>
+          <input id="fps" type="number" min="1" step="0.001" value="24">
+        </div>
+        <div class="field">
+          <label for="duration">コンポ尺 フレーム</label>
+          <input id="duration" type="number" min="1" step="1" value="240">
+        </div>
+        <div class="field">
+          <label for="sourceDuration">素材尺 フレーム</label>
+          <input id="sourceDuration" type="number" min="1" step="1" value="240">
+        </div>
+        <div class="field">
+          <label for="layerName">レイヤー名</label>
+          <input id="layerName" value="Time Remap Sheet">
+        </div>
+        <div class="field">
+          <label for="curveMode">Autograph Curve</label>
+          <select id="curveMode">
+            <option value="Constant">Constant</option>
+            <option value="Linear">Linear</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rounding">秒の丸め</label>
+          <select id="rounding">
+            <option value="6">6 桁</option>
+            <option value="4">4 桁</option>
+            <option value="3">3 桁</option>
+            <option value="2">2 桁</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sheet-wrap">
+        <table aria-label="Time remap key table">
+          <thead>
+            <tr>
+              <th style="width: 92px;">Comp Frame</th>
+              <th style="width: 126px;">Comp Time</th>
+              <th style="width: 100px;">Source Frame</th>
+              <th style="width: 126px;">Source Time</th>
+              <th>Memo</th>
+              <th style="width: 92px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric"><b id="keyCount">0</b><span>keys</span></div>
+        <div class="metric"><b id="avgSpeed">0x</b><span>average speed</span></div>
+        <div class="metric"><b id="rangeInfo">0f</b><span>source range</span></div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-head">
+          <span>Time Remap Curve</span>
+          <span>横: comp time / 縦: source time</span>
+        </div>
+        <canvas id="chart" width="920" height="320"></canvas>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="output">
+        <div class="output-head">
+          <label for="autographNativeText">Autograph キー JSON</label>
+          <button data-copy="autographNativeText" type="button">コピー</button>
+        </div>
+        <textarea id="autographNativeText" readonly></textarea>
+        <div class="note">Autograph 側で Time Remap パラメータを選択してからペーストしてください。curve は秒単位で、表は FPS からフレーム換算しています。</div>
+      </div>
+
+      <div class="output">
+        <div class="output-head">
+          <label for="jsonText">作業用 JSON</label>
+          <button data-copy="jsonText" type="button">コピー</button>
+        </div>
+        <textarea id="jsonText" readonly></textarea>
+      </div>
+
+      <div class="output">
+        <div class="output-head">
+          <label for="aeText">After Effects 用 Time Remap</label>
+          <button data-copy="aeText" type="button">コピー</button>
+        </div>
+        <textarea id="aeText" readonly></textarea>
+        <div class="note">AE の Time Remap プロパティを選択してペーストするためのキーフレームテキストです。</div>
+      </div>
+
+      <div class="note">
+        0F / 48F / 240F のキーを作る場合、24fps では Autograph JSON の curve は 0s / 2s / 10s になります。逆再生は Source Frame を減らし、停止は同じ Source Frame を続けてください。
+      </div>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast">コピーしました</div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const rowsEl = $("#rows");
+    const fpsEl = $("#fps");
+    const durationEl = $("#duration");
+    const sourceDurationEl = $("#sourceDuration");
+    const layerNameEl = $("#layerName");
+    const curveModeEl = $("#curveMode");
+    const roundingEl = $("#rounding");
+    const toastEl = $("#toast");
+
+    let rows = [
+      { compFrame: 0, sourceFrame: 0, memo: "start" },
+      { compFrame: 48, sourceFrame: 48, memo: "2s at 24fps" },
+      { compFrame: 240, sourceFrame: 240, memo: "10s at 24fps" }
+    ];
+
+    function fps() {
+      return Math.max(Number(fpsEl.value) || 24, 0.001);
+    }
+
+    function precision() {
+      return Number(roundingEl.value) || 6;
+    }
+
+    function frameToSeconds(frame) {
+      return Number(frame) / fps();
+    }
+
+    function secondsToFrame(seconds) {
+      const scaled = Number(seconds) * fps();
+      const nearest = Math.round(scaled);
+      return Math.abs(scaled - nearest) < 0.000001 ? nearest : Number(scaled.toFixed(3));
+    }
+
+    function fmt(value) {
+      return Number(value).toFixed(precision()).replace(/\.?0+$/, "");
+    }
+
+    function timecode(frame) {
+      const rate = Math.round(fps());
+      const total = Math.max(0, Math.round(Number(frame) || 0));
+      const f = total % rate;
+      const totalSeconds = Math.floor(total / rate);
+      const s = totalSeconds % 60;
+      const m = Math.floor(totalSeconds / 60) % 60;
+      const h = Math.floor(totalSeconds / 3600);
+      return [h, m, s, f].map((part) => String(part).padStart(2, "0")).join(":");
+    }
+
+    function escapeAttr(value) {
+      return String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function normalizeRows() {
+      return rows.map((row) => ({
+        compFrame: Number(row.compFrame) || 0,
+        sourceFrame: Number(row.sourceFrame) || 0,
+        memo: row.memo || ""
+      }));
+    }
+
+    function sortedRows() {
+      return normalizeRows().slice().sort((a, b) => a.compFrame - b.compFrame);
+    }
+
+    function syncRowsFromTable() {
+      rowsEl.querySelectorAll("[data-field][data-index]").forEach((input) => {
+        const index = Number(input.dataset.index);
+        const field = input.dataset.field;
+        if (!rows[index] || !field) return;
+        rows[index][field] = field.includes("Frame") ? Number(input.value) : input.value;
+      });
+    }
+
+    function renderRows() {
+      rowsEl.innerHTML = "";
+      normalizeRows().forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><input type="number" step="1" data-field="compFrame" data-index="${index}" value="${row.compFrame}"></td>
+          <td><input readonly value="${timecode(row.compFrame)} / ${fmt(frameToSeconds(row.compFrame))}s"></td>
+          <td><input type="number" step="1" data-field="sourceFrame" data-index="${index}" value="${row.sourceFrame}"></td>
+          <td><input readonly value="${timecode(row.sourceFrame)} / ${fmt(frameToSeconds(row.sourceFrame))}s"></td>
+          <td><input data-field="memo" data-index="${index}" value="${escapeAttr(row.memo)}"></td>
+          <td>
+            <div class="row-actions">
+              <button type="button" title="上へ" data-action="up" data-index="${index}">↑</button>
+              <button type="button" title="削除" data-action="delete" data-index="${index}">×</button>
+            </div>
+          </td>
+        `;
+        rowsEl.appendChild(tr);
+      });
+      updateOutputs();
+    }
+
+    function buildAutographPayload(data) {
+      const curve = [curveModeEl.value];
+      data.forEach((row) => {
+        curve.push(Number(fmt(frameToSeconds(row.compFrame))));
+        curve.push(Number(fmt(frameToSeconds(row.sourceFrame))));
+      });
+
+      return {
+        ActiveComposition: "Composition",
+        Params: {
+          timeRemap: {
+            Dimension: 0,
+            PluginID: "com.leftangle.AppLib.TimeParam",
+            AnimationEnabled: true,
+            DisplayName: "Time Remap",
+            Description: "A curve that maps output time (along the X axis) to source time (along the Y axis)",
+            curve,
+            ShowSeconds: true,
+            ParamHierarchy: [
+              "Composition",
+              "Layers",
+              layerNameEl.value || "Time Remap Sheet",
+              "retiming_dim_0"
+            ]
+          }
+        }
+      };
+    }
+
+    function updateOutputs() {
+      const data = sortedRows();
+      const payload = buildAutographPayload(data);
+      $("#autographNativeText").value = `// Layer-stack Selection Data\n${JSON.stringify(payload, null, 2)}`;
+      $("#aeText").value = [
+        "Adobe After Effects 8.0 Keyframe Data",
+        "",
+        `\tUnits Per Second\t${fps()}`,
+        "\tSource Width\t0",
+        "\tSource Height\t0",
+        "\tSource Pixel Aspect Ratio\t1",
+        "\tComp Pixel Aspect Ratio\t1",
+        "",
+        "Time Remap",
+        "\tFrame\tseconds",
+        ...data.map((row) => `\t${row.compFrame}\t${fmt(frameToSeconds(row.sourceFrame))}`),
+        "",
+        "End of Keyframe Data"
+      ].join("\n");
+      $("#jsonText").value = JSON.stringify({
+        fps: fps(),
+        compDurationFrames: Number(durationEl.value) || 0,
+        sourceDurationFrames: Number(sourceDurationEl.value) || 0,
+        curveMode: curveModeEl.value,
+        layerName: layerNameEl.value,
+        keys: data.map((row) => ({
+          compFrame: row.compFrame,
+          compSeconds: Number(fmt(frameToSeconds(row.compFrame))),
+          sourceFrame: row.sourceFrame,
+          sourceSeconds: Number(fmt(frameToSeconds(row.sourceFrame))),
+          memo: row.memo
+        }))
+      }, null, 2);
+
+      $("#keyCount").textContent = data.length;
+      const first = data[0];
+      const last = data[data.length - 1];
+      const compSpan = first && last ? Math.max(last.compFrame - first.compFrame, 0) : 0;
+      const sourceSpan = first && last ? last.sourceFrame - first.sourceFrame : 0;
+      $("#avgSpeed").textContent = compSpan ? `${fmt(sourceSpan / compSpan)}x` : "0x";
+      $("#rangeInfo").textContent = data.length ? `${Math.min(...data.map((r) => r.sourceFrame))}..${Math.max(...data.map((r) => r.sourceFrame))}f` : "0f";
+      drawChart(data);
+      saveState();
+    }
+
+    function drawChart(data) {
+      const canvas = $("#chart");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 34;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, w, h);
+
+      const maxComp = Math.max(Number(durationEl.value) || 1, ...data.map((row) => row.compFrame), 1);
+      const maxSource = Math.max(Number(sourceDurationEl.value) || 1, ...data.map((row) => row.sourceFrame), 1);
+      const x = (frame) => pad + (frame / maxComp) * (w - pad * 1.5);
+      const y = (frame) => h - pad - (frame / maxSource) * (h - pad * 1.6);
+
+      ctx.strokeStyle = "#d9e1e8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i <= 4; i++) {
+        const gx = pad + (i / 4) * (w - pad * 1.5);
+        const gy = pad * .7 + (i / 4) * (h - pad * 1.6);
+        ctx.moveTo(gx, pad * .7);
+        ctx.lineTo(gx, h - pad);
+        ctx.moveTo(pad, gy);
+        ctx.lineTo(w - pad * .5, gy);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = "#0d7a6a";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      data.forEach((row, index) => {
+        const px = x(row.compFrame);
+        const py = y(row.sourceFrame);
+        if (index === 0) ctx.moveTo(px, py);
+        else if (curveModeEl.value === "Constant") {
+          const prev = data[index - 1];
+          ctx.lineTo(px, y(prev.sourceFrame));
+          ctx.lineTo(px, py);
+        } else {
+          ctx.lineTo(px, py);
+        }
+      });
+      ctx.stroke();
+
+      data.forEach((row) => {
+        ctx.fillStyle = "#0d7a6a";
+        ctx.beginPath();
+        ctx.arc(x(row.compFrame), y(row.sourceFrame), 5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = "#64717f";
+      ctx.font = "12px Segoe UI, sans-serif";
+      ctx.fillText("0", 10, h - pad + 4);
+      ctx.fillText(`${maxComp}f`, w - 62, h - 10);
+      ctx.save();
+      ctx.translate(12, 96);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(`${maxSource}f source`, 0, 0);
+      ctx.restore();
+    }
+
+    function parsePastedRows(text) {
+      const jsonStart = text.indexOf("{");
+      if (jsonStart < 0) return [];
+
+      try {
+        const payload = JSON.parse(text.slice(jsonStart));
+        const timeRemap = payload?.Params?.timeRemap;
+        const curve = timeRemap?.curve;
+        if (!Array.isArray(curve) || curve.length < 3) return [];
+
+        if (typeof curve[0] === "string") curveModeEl.value = curve[0];
+
+        const parsedCurve = [];
+        for (let i = 1; i < curve.length - 1; i += 2) {
+          const compSeconds = Number(curve[i]);
+          const sourceSeconds = Number(curve[i + 1]);
+          parsedCurve.push({
+            compFrame: secondsToFrame(compSeconds),
+            sourceFrame: secondsToFrame(sourceSeconds),
+            memo: `${fmt(compSeconds)}s -> ${fmt(sourceSeconds)}s`
+          });
+        }
+
+        const hierarchy = timeRemap?.ParamHierarchy;
+        if (Array.isArray(hierarchy) && hierarchy.length >= 3) {
+          layerNameEl.value = hierarchy[2] || layerNameEl.value;
+        }
+        return parsedCurve;
+      } catch {
+        return [];
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem("autograph-time-remap-sheet", JSON.stringify({
+        rows,
+        fps: fpsEl.value,
+        duration: durationEl.value,
+        sourceDuration: sourceDurationEl.value,
+        layerName: layerNameEl.value,
+        curveMode: curveModeEl.value,
+        rounding: roundingEl.value
+      }));
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem("autograph-time-remap-sheet");
+      if (!raw) return;
+      try {
+        const state = JSON.parse(raw);
+        if (Array.isArray(state.rows)) rows = state.rows;
+        fpsEl.value = state.fps || fpsEl.value;
+        durationEl.value = state.duration || durationEl.value;
+        sourceDurationEl.value = state.sourceDuration || sourceDurationEl.value;
+        layerNameEl.value = state.layerName || layerNameEl.value;
+        curveModeEl.value = state.curveMode || curveModeEl.value;
+        roundingEl.value = state.rounding || roundingEl.value;
+      } catch {
+        localStorage.removeItem("autograph-time-remap-sheet");
+      }
+    }
+
+    function copyText(id) {
+      const text = $(`#${id}`).value;
+      navigator.clipboard.writeText(text).then(() => showToast("コピーしました"));
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      window.setTimeout(() => toastEl.classList.remove("show"), 1400);
+    }
+
+    rowsEl.addEventListener("input", (event) => {
+      const target = event.target;
+      const index = Number(target.dataset.index);
+      const field = target.dataset.field;
+      if (!field || Number.isNaN(index)) return;
+      rows[index][field] = field.includes("Frame") ? Number(target.value) : target.value;
+      updateOutputs();
+    });
+
+    rowsEl.addEventListener("change", (event) => {
+      if (!event.target.dataset.field) return;
+      renderRows();
+    });
+
+    rowsEl.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      const index = Number(button.dataset.index);
+      if (button.dataset.action === "delete") rows.splice(index, 1);
+      if (button.dataset.action === "up" && index > 0) {
+        [rows[index - 1], rows[index]] = [rows[index], rows[index - 1]];
+      }
+      renderRows();
+    });
+
+    document.querySelectorAll(".settings input, .settings select").forEach((el) => {
+      el.addEventListener("input", renderRows);
+    });
+
+    $("#addRow").addEventListener("click", () => {
+      const last = sortedRows().at(-1) || { compFrame: 0, sourceFrame: 0 };
+      rows.push({
+        compFrame: last.compFrame + Math.round(fps()),
+        sourceFrame: last.sourceFrame + Math.round(fps()),
+        memo: ""
+      });
+      renderRows();
+    });
+
+    $("#refreshKeys").addEventListener("click", () => {
+      syncRowsFromTable();
+      renderRows();
+      showToast("キーを書き出しました");
+    });
+
+    $("#sortRows").addEventListener("click", () => {
+      syncRowsFromTable();
+      rows = sortedRows();
+      renderRows();
+    });
+
+    $("#clearRows").addEventListener("click", () => {
+      rows = [
+        { compFrame: 0, sourceFrame: 0, memo: "start" },
+        { compFrame: Math.round(fps()) * 2, sourceFrame: Math.round(fps()) * 2, memo: "2s" },
+        { compFrame: Math.round(fps()) * 10, sourceFrame: Math.round(fps()) * 10, memo: "10s" }
+      ];
+      renderRows();
+    });
+
+    $("#pasteRows").addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        const parsed = parsePastedRows(text);
+        if (parsed.length) {
+          rows = parsed;
+          renderRows();
+          showToast(`${parsed.length} キーを読み込みました`);
+        } else {
+          showToast("Time Remap JSON を読めませんでした");
+        }
+      } catch {
+        showToast("クリップボードを読めませんでした");
+      }
+    });
+
+    document.querySelectorAll("[data-copy]").forEach((button) => {
+      button.addEventListener("click", () => copyText(button.dataset.copy));
+    });
+
+    loadState();
+    renderRows();
+  </script>
+</body>
+</html>
